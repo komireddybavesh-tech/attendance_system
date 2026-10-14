@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Attendance System{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head><body>
+{% if session.user_id %}
+<nav>
+  <strong>Attendance System</strong>
+  <a href="{{ url_for('dashboard') }}">Dashboard</a>
+  <a href="{{ url_for('classes') }}">Classes</a>
+  <a href="{{ url_for('students') }}">Students</a>
+  <a href="{{ url_for('attendance') }}">Mark Attendance</a>
+  <a href="{{ url_for('reports') }}">Reports</a>
+  <span class="spacer"></span>
+  <span>{{ session.username }} ({{ session.role }})</span>
+  <a href="{{ url_for('logout') }}">Logout</a>
+</nav>
+{% endif %}
+<main>
+{% with msgs = get_flashed_messages(with_categories=true) %}
+  {% for cat, m in msgs %}<div class="flash {{ cat }}">{{ m }}</div>{% endfor %}
+{% endwith %}
+{% block content %}{% endblock %}
+</main></body></html>

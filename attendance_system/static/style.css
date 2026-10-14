@@ -1,0 +1,17 @@
+*{box-sizing:border-box}body{font-family:system-ui,sans-serif;margin:0;background:#f4f6f9;color:#222}
+nav{display:flex;gap:16px;align-items:center;background:#1f3a5f;color:#fff;padding:12px 24px;flex-wrap:wrap}
+nav a{color:#cfe0f7;text-decoration:none}nav a:hover{color:#fff}.spacer{flex:1}
+main{max-width:1000px;margin:24px auto;padding:0 16px}
+.card{background:#fff;padding:16px;border-radius:8px;box-shadow:0 1px 3px #0002;margin-bottom:16px}
+.narrow{max-width:360px;margin:60px auto}label{display:block;margin-bottom:12px}
+input,select{padding:8px;border:1px solid #bbb;border-radius:4px;width:100%}
+.inline{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.inline input,.inline select{width:auto;flex:1;min-width:140px}
+button,.btn{background:#1f3a5f;color:#fff;border:0;padding:8px 14px;border-radius:4px;cursor:pointer;text-decoration:none;font-size:14px}
+button.danger{background:#b3261e}
+table{width:100%;border-collapse:collapse;background:#fff;border-radius:8px;overflow:hidden;margin-bottom:16px}
+th,td{padding:10px;text-align:left;border-bottom:1px solid #eee}th{background:#e8eef6}
+td input[type=checkbox]{width:auto}.small{display:inline;font-weight:normal;font-size:12px}.small input{width:auto}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px}
+.stat{background:#fff;padding:16px;border-radius:8px;box-shadow:0 1px 3px #0002}.stat b{display:block;font-size:28px}
+.stat.warn b,.bad{color:#b3261e}.lowrow{background:#fdecea}
+.flash{padding:10px 14px;border-radius:4px;margin-bottom:12px}.flash.ok{background:#e3f4e6}.flash.error{background:#fdecea}

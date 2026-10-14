@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Dashboard</h2>
+<div class="stats">
+  <div class="stat"><b>{{ stats.students }}</b>Students</div>
+  <div class="stat"><b>{{ stats.classes }}</b>Classes</div>
+  <div class="stat"><b>{{ stats.today }}</b>Marked today</div>
+  <div class="stat warn"><b>{{ stats.low }}</b>Low attendance</div>
+</div>
+<h3>Students below threshold</h3>
+{% if low %}
+<table><tr><th>Roll No</th><th>Name</th><th>Class</th><th>%</th></tr>
+{% for r in low %}<tr><td>{{ r.roll_no }}</td><td>{{ r.name }}</td><td>{{ r.class_name }} {{ r.section }}</td><td class="bad">{{ r.pct }}%</td></tr>{% endfor %}
+</table>
+{% else %}<p>No students are below the threshold.</p>{% endif %}
+{% endblock %}

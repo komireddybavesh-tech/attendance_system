@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Mark Attendance</h2>
+<form method="get" class="inline card">
+  <select name="class_id" required>
+    <option value="">Select class...</option>
+    {% for c in classes %}<option value="{{ c.id }}" {{ 'selected' if c.id == class_id }}>{{ c.name }} {{ c.section }}</option>{% endfor %}
+  </select>
+  <input type="date" name="att_date" value="{{ att_date }}" required>
+  <button>Load</button>
+</form>
+{% if class_id %}
+<form method="post">
+  <input type="hidden" name="class_id" value="{{ class_id }}">
+  <input type="hidden" name="att_date" value="{{ att_date }}">
+  <table><tr><th>Roll No</th><th>Name</th><th>Present <label class="small"><input type="checkbox" id="all"> all</label></th></tr>
+  {% for r in rows %}<tr><td>{{ r.roll_no }}</td><td>{{ r.name }}</td>
+  <td><input type="checkbox" class="p" name="present" value="{{ r.id }}" {{ 'checked' if r.status != 'Absent' }}></td></tr>
+  {% else %}<tr><td colspan="3">No students in this class.</td></tr>{% endfor %}
+  </table>
+  {% if rows %}<button>Save attendance</button>{% endif %}
+</form>
+<script>
+document.getElementById('all').onchange = e =>
+  document.querySelectorAll('.p').forEach(c => c.checked = e.target.checked);
+</script>
+{% endif %}
+{% endblock %}

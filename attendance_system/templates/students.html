@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Students</h2>
+{% if session.role == 'admin' %}
+<form method="post" class="inline card">
+  <input name="roll_no" placeholder="Roll no" required>
+  <input name="name" placeholder="Full name" required>
+  <input name="email" type="email" placeholder="Email">
+  <select name="class_id" required>
+    <option value="">Class...</option>
+    {% for c in classes %}<option value="{{ c.id }}">{{ c.name }} {{ c.section }}</option>{% endfor %}
+  </select>
+  <button>Add student</button>
+</form>
+{% endif %}
+<table><tr><th>Roll No</th><th>Name</th><th>Email</th><th>Class</th>{% if session.role == 'admin' %}<th></th>{% endif %}</tr>
+{% for s in students %}<tr><td>{{ s.roll_no }}</td><td>{{ s.name }}</td><td>{{ s.email }}</td><td>{{ s.class_name }} {{ s.section }}</td>
+{% if session.role == 'admin' %}<td><form method="post" action="{{ url_for('delete_student', sid=s.id) }}" onsubmit="return confirm('Delete this student?')"><button class="danger">Delete</button></form></td>{% endif %}</tr>{% endfor %}
+</table>
+{% endblock %}
