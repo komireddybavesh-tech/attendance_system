@@ -1,20 +1,133 @@
 {% extends "base.html" %}
+{% block title %}Manage Students &bull; Attendify{% endblock %}
+
 {% block content %}
-<h2>Students</h2>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+        <circle cx="9" cy="7" r="4"></circle>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+      </svg>
+      Student Directory
+    </h1>
+    <p class="page-subtitle">Register and manage student profiles and class enrollments.</p>
+  </div>
+</div>
+
 {% if session.role == 'admin' %}
-<form method="post" class="inline card">
-  <input name="roll_no" placeholder="Roll no" required>
-  <input name="name" placeholder="Full name" required>
-  <input name="email" type="email" placeholder="Email">
-  <select name="class_id" required>
-    <option value="">Class...</option>
-    {% for c in classes %}<option value="{{ c.id }}">{{ c.name }} {{ c.section }}</option>{% endfor %}
-  </select>
-  <button>Add student</button>
-</form>
+<div class="card">
+  <h2 style="font-size: 1.15rem; font-weight: 700; color: var(--slate-900); margin-bottom: 1rem;">
+    Register New Student
+  </h2>
+  <form method="post" class="form-grid">
+    <div class="form-group">
+      <label class="form-label" for="roll_no">Roll / Student ID</label>
+      <input id="roll_no" name="roll_no" placeholder="e.g. CS2026-001" required>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="name">Full Name</label>
+      <input id="name" name="name" placeholder="e.g. Eleanor Vance" required>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="email">Email Address</label>
+      <input id="email" type="email" name="email" placeholder="student@example.edu">
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="class_id">Assigned Class</label>
+      <select id="class_id" name="class_id" required>
+        <option value="">Select class...</option>
+        {% for c in classes %}
+          <option value="{{ c.id }}">{{ c.name }} {{ c.section }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <button type="submit" class="btn btn-primary" style="width: 100%;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        Register
+      </button>
+    </div>
+  </form>
+</div>
 {% endif %}
-<table><tr><th>Roll No</th><th>Name</th><th>Email</th><th>Class</th>{% if session.role == 'admin' %}<th></th>{% endif %}</tr>
-{% for s in students %}<tr><td>{{ s.roll_no }}</td><td>{{ s.name }}</td><td>{{ s.email }}</td><td>{{ s.class_name }} {{ s.section }}</td>
-{% if session.role == 'admin' %}<td><form method="post" action="{{ url_for('delete_student', sid=s.id) }}" onsubmit="return confirm('Delete this student?')"><button class="danger">Delete</button></form></td>{% endif %}</tr>{% endfor %}
-</table>
+
+<div class="card">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <h2 style="font-size: 1.15rem; font-weight: 700; color: var(--slate-900);">Enrolled Students</h2>
+      <span class="badge badge-neutral">{{ students|length }} students registered</span>
+    </div>
+    <div style="min-width: 240px;">
+      <input id="student-search" type="search" placeholder="🔍 Quick search students..." oninput="filterStudents(this.value)">
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table id="students-table">
+      <thead>
+        <tr>
+          <th>Roll No</th>
+          <th>Student Name</th>
+          <th>Email</th>
+          <th>Enrolled Class</th>
+          {% if session.role == 'admin' %}
+            <th style="width: 100px; text-align: center;">Actions</th>
+          {% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in students %}
+          <tr class="student-row">
+            <td><strong>{{ s.roll_no }}</strong></td>
+            <td>
+              <div style="display: flex; align-items: center; gap: 0.6rem;">
+                <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem;">
+                  {{ s.name[:1]|upper }}
+                </div>
+                <span>{{ s.name }}</span>
+              </div>
+            </td>
+            <td>
+              {% if s.email %}
+                <a href="mailto:{{ s.email }}" style="color: var(--primary); text-decoration: none;">{{ s.email }}</a>
+              {% else %}
+                <span style="color: var(--slate-400);">&mdash;</span>
+              {% endif %}
+            </td>
+            <td><span class="badge badge-neutral">{{ s.class_name }} {{ s.section }}</span></td>
+            {% if session.role == 'admin' %}
+              <td style="text-align: center;">
+                <form method="post" action="{{ url_for('delete_student', sid=s.id) }}" onsubmit="return confirm('Are you sure you want to remove {{ s.name }}?');" style="display: inline;">
+                  <button type="submit" class="btn btn-danger btn-sm" title="Delete Student">Delete</button>
+                </form>
+              </td>
+            {% endif %}
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="5" style="text-align: center; color: var(--slate-400); padding: 2.5rem;">
+              No students enrolled yet.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+function filterStudents(query) {
+  const q = query.toLowerCase().trim();
+  document.querySelectorAll('.student-row').forEach(row => {
+    const text = row.textContent.toLowerCase();
+    row.style.display = text.includes(q) ? '' : 'none';
+  });
+}
+</script>
 {% endblock %}

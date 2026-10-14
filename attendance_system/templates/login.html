@@ -1,11 +1,82 @@
-{% extends "base.html" %}
-{% block content %}
-<div class="card narrow">
-  <h2>Login</h2>
-  <form method="post">
-    <label>Username <input name="username" required autofocus></label>
-    <label>Password <input type="password" name="password" required></label>
-    <button>Sign in</button>
-  </form>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login &bull; Attendify</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="login-screen">
+  <div class="login-card">
+    <div class="login-header">
+      <div class="login-logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+          <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
+        </svg>
+      </div>
+      <h1 class="login-title">Attendify</h1>
+      <p class="login-subtitle">Student Attendance Management Portal</p>
+    </div>
+
+    {% with msgs = get_flashed_messages(with_categories=true) %}
+      {% if msgs %}
+        <div class="flash-container">
+          {% for cat, m in msgs %}
+            <div class="flash {{ cat }}">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+              <span>{{ m }}</span>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <form method="post" style="display: flex; flex-direction: column; gap: 1.15rem;">
+      <div class="form-group">
+        <label class="form-label" for="username">Username</label>
+        <input id="username" name="username" placeholder="e.g. admin or faculty" required autofocus autocomplete="username">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="password">Password</label>
+        <input id="password" type="password" name="password" placeholder="••••••••" required autocomplete="current-password">
+      </div>
+
+      <button type="submit" class="btn btn-primary" id="sign-in-btn">
+        <span>Sign In to Dashboard</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+          <polyline points="12 5 19 12 12 19"></polyline>
+        </svg>
+      </button>
+    </form>
+
+    <div class="demo-credentials-box">
+      <div class="demo-title">Quick Demo Login</div>
+      <div class="demo-buttons">
+        <button type="button" class="demo-btn" onclick="fillCreds('admin', 'admin123')">
+          🔑 Admin Login
+        </button>
+        <button type="button" class="demo-btn" onclick="fillCreds('faculty', 'faculty123')">
+          👨‍🏫 Faculty Login
+        </button>
+      </div>
+    </div>
+  </div>
 </div>
-{% endblock %}
+
+<script>
+function fillCreds(u, p) {
+  document.getElementById('username').value = u;
+  document.getElementById('password').value = p;
+  document.getElementById('sign-in-btn').focus();
+}
+</script>
+</body>
+</html>

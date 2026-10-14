@@ -1,28 +1,145 @@
 {% extends "base.html" %}
+{% block title %}Mark Attendance &bull; Attendify{% endblock %}
+
 {% block content %}
-<h2>Mark Attendance</h2>
-<form method="get" class="inline card">
-  <select name="class_id" required>
-    <option value="">Select class...</option>
-    {% for c in classes %}<option value="{{ c.id }}" {{ 'selected' if c.id == class_id }}>{{ c.name }} {{ c.section }}</option>{% endfor %}
-  </select>
-  <input type="date" name="att_date" value="{{ att_date }}" required>
-  <button>Load</button>
-</form>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 11l3 3L22 4"></path>
+        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+      </svg>
+      Mark Attendance
+    </h1>
+    <p class="page-subtitle">Select a class and date to take or update roll call attendance.</p>
+  </div>
+</div>
+
+<div class="card">
+  <form method="get" class="form-grid">
+    <div class="form-group">
+      <label class="form-label" for="class_id">Select Class</label>
+      <select id="class_id" name="class_id" required>
+        <option value="">Choose a class...</option>
+        {% for c in classes %}
+          <option value="{{ c.id }}" {{ 'selected' if c.id == class_id }}>
+            {{ c.name }} {{ c.section }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="att_date">Attendance Date</label>
+      <input type="date" id="att_date" name="att_date" value="{{ att_date }}" required>
+    </div>
+
+    <div style="display: flex; gap: 0.5rem;">
+      <button type="submit" class="btn btn-primary" style="flex: 1;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        Load Students
+      </button>
+    </div>
+  </form>
+</div>
+
 {% if class_id %}
-<form method="post">
-  <input type="hidden" name="class_id" value="{{ class_id }}">
-  <input type="hidden" name="att_date" value="{{ att_date }}">
-  <table><tr><th>Roll No</th><th>Name</th><th>Present <label class="small"><input type="checkbox" id="all"> all</label></th></tr>
-  {% for r in rows %}<tr><td>{{ r.roll_no }}</td><td>{{ r.name }}</td>
-  <td><input type="checkbox" class="p" name="present" value="{{ r.id }}" {{ 'checked' if r.status != 'Absent' }}></td></tr>
-  {% else %}<tr><td colspan="3">No students in this class.</td></tr>{% endfor %}
-  </table>
-  {% if rows %}<button>Save attendance</button>{% endif %}
-</form>
-<script>
-document.getElementById('all').onchange = e =>
-  document.querySelectorAll('.p').forEach(c => c.checked = e.target.checked);
-</script>
+  <div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--slate-900);">
+          Roll Call: {{ selected_class.name if selected_class else 'Class' }} {{ selected_class.section if selected_class else '' }}
+        </h2>
+        <p style="color: var(--slate-500); font-size: 0.85rem;">Date: <strong>{{ att_date }}</strong> &bull; Total enrolled: <strong>{{ rows|length }}</strong></p>
+      </div>
+      
+      {% if rows %}
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="setAllPresent(true)">
+            &check; Mark All Present
+          </button>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="setAllPresent(false)">
+            &cross; Mark All Absent
+          </button>
+        </div>
+      {% endif %}
+    </div>
+
+    {% if rows %}
+      <form method="post">
+        <input type="hidden" name="class_id" value="{{ class_id }}">
+        <input type="hidden" name="att_date" value="{{ att_date }}">
+        
+        <div class="table-responsive" style="margin-bottom: 1.5rem;">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 140px;">Roll Number</th>
+                <th>Student Name</th>
+                <th style="width: 200px; text-align: center;">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for r in rows %}
+                <tr>
+                  <td><strong>{{ r.roll_no }}</strong></td>
+                  <td>{{ r.name }}</td>
+                  <td style="text-align: center;">
+                    <label class="attendance-toggle-label" style="justify-content: center;">
+                      <input type="checkbox" class="attendance-check checkbox-custom" name="present" value="{{ r.id }}"
+                             {{ 'checked' if (r.status == 'Present' or r.status is none) }}
+                             onchange="updateRowBadge(this)">
+                      <span class="status-indicator-badge badge {{ 'badge-success' if (r.status == 'Present' or r.status is none) else 'badge-danger' }}">
+                        {{ 'Present' if (r.status == 'Present' or r.status is none) else 'Absent' }}
+                      </span>
+                    </label>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end;">
+          <button type="submit" class="btn btn-success" style="padding: 0.8rem 1.75rem; font-size: 1rem;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+              <polyline points="17 21 17 13 7 13 7 21"></polyline>
+              <polyline points="7 3 7 8 15 8"></polyline>
+            </svg>
+            Save Attendance Records
+          </button>
+        </div>
+      </form>
+
+      <script>
+      function updateRowBadge(checkbox) {
+        const badge = checkbox.parentElement.querySelector('.status-indicator-badge');
+        if (checkbox.checked) {
+          badge.textContent = 'Present';
+          badge.className = 'status-indicator-badge badge badge-success';
+        } else {
+          badge.textContent = 'Absent';
+          badge.className = 'status-indicator-badge badge badge-danger';
+        }
+      }
+
+      function setAllPresent(val) {
+        document.querySelectorAll('.attendance-check').forEach(cb => {
+          cb.checked = val;
+          updateRowBadge(cb);
+        });
+      }
+      </script>
+    {% else %}
+      <div style="text-align: center; padding: 2.5rem 1rem; color: var(--slate-500);">
+        <p style="font-size: 1rem; margin-bottom: 0.75rem;">No students found in this class yet.</p>
+        <a href="{{ url_for('students') }}" class="btn btn-primary btn-sm">Add Students to Class</a>
+      </div>
+    {% endif %}
+  </div>
 {% endif %}
 {% endblock %}

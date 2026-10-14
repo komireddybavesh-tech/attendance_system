@@ -1,17 +1,116 @@
 {% extends "base.html" %}
+{% block title %}Attendance Reports &bull; Attendify{% endblock %}
+
 {% block content %}
-<h2>Attendance Report</h2>
-<form method="get" class="inline card">
-  <select name="class_id">
-    <option value="">All classes</option>
-    {% for c in classes %}<option value="{{ c.id }}" {{ 'selected' if c.id == class_id }}>{{ c.name }} {{ c.section }}</option>{% endfor %}
-  </select>
-  <button>Filter</button>
-  <a class="btn" href="{{ url_for('export_report', class_id=class_id) }}">Export CSV</a>
-</form>
-<p>Minimum required attendance: <b>{{ threshold }}%</b></p>
-<table><tr><th>Roll No</th><th>Name</th><th>Class</th><th>Days</th><th>Present</th><th>%</th><th>Status</th></tr>
-{% for r in rows %}<tr class="{{ 'lowrow' if r.low }}"><td>{{ r.roll_no }}</td><td>{{ r.name }}</td><td>{{ r.class_name }} {{ r.section }}</td>
-<td>{{ r.total }}</td><td>{{ r.present }}</td><td>{{ r.pct }}%</td><td>{{ 'LOW' if r.low else 'OK' }}</td></tr>{% endfor %}
-</table>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="20" x2="18" y2="10"></line>
+        <line x1="12" y1="20" x2="12" y2="4"></line>
+        <line x1="6" y1="20" x2="6" y2="14"></line>
+      </svg>
+      Attendance Analytics & Reports
+    </h1>
+    <p class="page-subtitle">Cumulative attendance percentages, threshold flags, and CSV exports.</p>
+  </div>
+</div>
+
+<div class="card">
+  <form method="get" class="form-grid" style="align-items: flex-end;">
+    <div class="form-group" style="flex: 2;">
+      <label class="form-label" for="class_id">Filter by Class</label>
+      <select id="class_id" name="class_id">
+        <option value="">All Classes</option>
+        {% for c in classes %}
+          <option value="{{ c.id }}" {{ 'selected' if c.id == class_id }}>
+            {{ c.name }} {{ c.section }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div style="display: flex; gap: 0.5rem; flex: 1;">
+      <button type="submit" class="btn btn-primary" style="flex: 1;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+        </svg>
+        Filter
+      </button>
+
+      <a class="btn btn-secondary" href="{{ url_for('export_report', class_id=class_id) }}" title="Download CSV spreadsheet">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        Export CSV
+      </a>
+    </div>
+  </form>
+</div>
+
+<div class="card">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.5rem;">
+    <div>
+      <h2 style="font-size: 1.15rem; font-weight: 700; color: var(--slate-900);">Cumulative Records</h2>
+      <p style="color: var(--slate-500); font-size: 0.85rem;">
+        Official attendance requirement is set to <strong>{{ threshold }}%</strong>.
+      </p>
+    </div>
+    <span class="badge badge-neutral">{{ rows|length }} total students</span>
+  </div>
+
+  <div class="table-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th>Roll No</th>
+          <th>Student Name</th>
+          <th>Class / Section</th>
+          <th style="text-align: center;">Total Days</th>
+          <th style="text-align: center;">Days Present</th>
+          <th style="width: 200px;">Attendance %</th>
+          <th style="text-align: center;">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+          <tr class="{{ 'low-attendance-row' if r.low }}">
+            <td><strong>{{ r.roll_no }}</strong></td>
+            <td>{{ r.name }}</td>
+            <td><span class="badge badge-neutral">{{ r.class_name }} {{ r.section }}</span></td>
+            <td style="text-align: center;">{{ r.total }}</td>
+            <td style="text-align: center;"><strong>{{ r.present }}</strong></td>
+            <td>
+              <div class="progress-container">
+                <div class="progress-track">
+                  <div class="progress-fill {{ 'low' if r.low else ('medium' if r.pct < 85 else 'high') }}" style="width: {{ r.pct }}%;"></div>
+                </div>
+                <strong style="color: {{ 'var(--danger)' if r.low else 'var(--slate-800)' }}; font-size: 0.875rem;">
+                  {{ r.pct }}%
+                </strong>
+              </div>
+            </td>
+            <td style="text-align: center;">
+              {% if r.total == 0 %}
+                <span class="badge badge-neutral">No Records</span>
+              {% elif r.low %}
+                <span class="badge badge-danger">Low (&lt;{{ threshold }}%)</span>
+              {% else %}
+                <span class="badge badge-success">Satisfactory</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="7" style="text-align: center; color: var(--slate-400); padding: 2.5rem;">
+              No students found for this selection.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
 {% endblock %}
